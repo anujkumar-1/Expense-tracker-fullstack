@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense Tracker - Login Page</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.7.2/axios.min.js"></script>
+    <style>
+        #login-form{
+            background-color: #99a3a4;
+            margin: 10px;
+            padding: 20px;
+            font-family: sans-serif;
+        }
+        input{
+            width: 15rem;
+            margin:.4rem;
+            border-radius: 4px;
+        }
+
+        #loginButton{
+            background-color: #5dade2;
+            padding: .3rem;
+            font-family: sans-serif;
+            border-radius: 4px;
+        }
+        #signUpPage{
+            background-color: #99a3a4;
+            color: black;
+            padding: .8rem;
+            margin: .65rem;
+            border-radius: 4px;
+            font-family: sans-serif;
+        }
+
+        #signup{
+        
+        margin-top: 2rem;
+    }
+    </style>
+</head>
+<body>
+    <form id="login-form" onsubmit="login(event)">
+        <label for="verifyEmail" class="details">Email :</label>
+        <input type="email" id="verifyEmail" name="verifyEmail" required>
+        <br>
+        <label for="verifyPassword" class="details">Password :</label>
+        <input type="password" id="verifyPassword" name="verifyPassword" required>
+        <br>
+        <button type="submit" id="loginButton">Login</button>
+    </form>
+    <div id="message"></div>
+    <div id="signup">
+        <a href="./index.html" id="signUpPage">Sign Up Now</a>
+        <a href="./homepage.html" id="homePage" ></a>
+    </div>
+<script>
+    async function login(event){
+        try {
+            event.preventDefault();
+            const email= event.target.verifyEmail.value;
+            const password= event.target.verifyPassword.value;
+
+            let loginObj = {
+               verifyEmail: email,
+               verifyPassword: password
+            }
+            console.log(loginObj)
+            const response = await axios.post('http://localhost:3000/login', loginObj)
+            console.log(response.data.token)
+            localStorage.setItem("token", response.data.token)
+            console.log(response.data.user)
+           
+            const div = document.getElementById("message")
+            div.textContent=response.data.message
+            console.log(response)
+            div.style.color="blue"
+            
+            if(response.status===200){
+                window.location.href= "./homepage.html"
+            }
+            else{
+                throw new Error("Failed to login")
+            
+            }
+
+            
+
+            
+
+        } catch (error) {
+            const div = document.getElementById("message")
+            div.textContent = error.response.data.message
+            div.style.color="red"
+            
+        }
+        
+    }
+</script>
+</body>
+</html>

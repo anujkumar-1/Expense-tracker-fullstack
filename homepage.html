@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Expense Tracker - Home Page</title>
+    <style>
+      #expensePage {
+        background-color: #99a3a4;
+        margin: 10px;
+        padding: 20px;
+        font-family: sans-serif;
+      }
+
+      .expenseList {
+        background-color: #ff6f3c;
+        margin: 10px;
+        padding: 20px;
+        width: 22%;
+        font-family: sans-serif;
+        list-style: none;
+      }
+
+      .deleteButton {
+        background-color: #5dade2;
+        padding: 0.3rem;
+        font-family: sans-serif;
+        border-radius: 4px;
+        margin-left: 2rem;
+      }
+
+      #ul {
+        margin-top: 3rem;
+      }
+
+      #goback {
+        padding: 0.3rem;
+        font-family: sans-serif;
+        border-radius: 4px;
+        margin-left: 0.6rem;
+        text-decoration: none;
+        margin-top: 2rem;
+      }
+
+      #rzp-premium {
+        background-color: #f80206;
+        padding: 0.3rem;
+        font-family: sans-serif;
+        border-radius: 4px;
+        margin-left: .6rem;
+      }
+
+
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.7.2/axios.min.js"></script>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  </head>
+  <body>
+    <form onsubmit="expenseForm(event)" id="expensePage">
+      <label for="amount">Chose Expense Amout: </label>
+      <input type="number" id="amount" name="amount" />
+
+      <label for="itemDescription">Chose Description: </label>
+      <input type="text" id="itemDescription" name="itemDescription" />
+
+      <label for="cateogory">Cateogory: </label>
+      <select id="cateogory" name="category">
+        <option value="food">Food</option>
+        <option value="clothing">Clothing</option>
+        <option value="travel">Travel</option>
+        <option value="education">Education</option>
+        <option value="personal">Health and personal care</option>
+        <option value="utility">Utility bills</option>
+
+        <option value="auto">Auto insurance premiums</option>
+        <option value="mortgage">Mortgage payments</option>
+        <option value="leisure">Leisure</option>
+      </select>
+
+      <button type="submit">Add Expense</button>
+    </form>
+    
+    <div id="ispremium"></div>
+    <button id="rzp-button1">Buy Premium</button>
+
+    <div id="leaderboard">
+      <button id="premiumLeaderBoard" style="display: none";>Show Leaderboard</button>
+      <ul id="allExpense"></ul>
+    </div>
+    
+
+    <div id="goback">
+      <a href="./login.html" id="loginPage">Go Back</a>
+    </div>
+    <ul id="ul"></ul>
+
+    <script>
+      async function expenseForm(event) {
+        try {
+          event.preventDefault();
+          const expenseAmount = event.target.amount.value;
+          const expenseDescription = event.target.itemDescription.value;
+          const expenseCategory = event.target.category.value;
+          
+         
+          let expenseObj = {
+            amount: expenseAmount,
+            itemDescription: expenseDescription,
+            category: expenseCategory,
+            
+          };
+          console.log(expenseObj);
+          const jwtToken = localStorage.getItem("token");
+          const response = await axios.post(
+            "http://localhost:3000/expenseForm",
+            expenseObj,
+            { headers: { Authorization: jwtToken } }
+          );
+          console.log(response);
+        } catch (error) {
+          throw new Error(error);
+        }
+      }
+      const ul = document.getElementById("ul");
+
+      ul.addEventListener("click", async function (event) {
+        const token = localStorage.getItem("token");
+
+        if (event.target.classList.contains("deleteButton")) {
+          const nodeToDelete = event.target.parentElement;
+          let text = nodeToDelete.firstChild.textContent;
+          const arr = text.split(" - ");
+          const response = await axios.get(
+            "http://localhost:3000/expenseAllData",
+            { headers: { Authorization: token } }
+          );
+          console.log(response)
+          let deleteIndex = -1;
+          for (let i = 0; i < response.data.allData.length; i++) {
+            if (
+              response.data.allData[i].amount == arr[0] &&
+              response.data.allData[i].itemDescription == arr[1] &&
+              response.data.allData[i].category == arr[2]
+            ) {
+              deleteIndex = i;
+              break;
+            }
+          }
+          console.log(deleteIndex);
+        }
+      });
+
+      function showPremiumUserMsg(){
+         document.getElementById("rzp-button1").style.display = "none";
+          document.getElementById("ispremium").textContent = "you are a premium user"
+         
+      }
+
+      function parseJwt (token) {
+          var base64Url = token.split('.')[1];
+          var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+          var jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
+              return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+          }).join(''));
+
+          return JSON.parse(jsonPayload);
+      }
+
+      function showAllLeaderboardUser(){
+        const leaderboard = document.getElementById("premiumLeaderBoard")
+        const allExpenseUl= document.getElementById("allExpense")
+        leaderboard.style.display = "block"
+
+        leaderboard.addEventListener("click", async function(e){
+          const h1 = document.createElement("h1")
+          h1.textContent = "Leaderboard"
+            const token = localStorage.getItem("token");
+            const ul = document.getElementById("ul");
+            ul.appendChild(h1)
+            const getAllLeaderboardUser = await axios.get("http://localhost:3000/leaderboardAllUser", { headers: {Authorization: token }});
+            console.log(getAllLeaderboardUser.data.arrOfAllUsers)
+
+            getAllLeaderboardUser.data.arrOfAllUsers.forEach(user => {
+              // console.log(user)
+              const li = document.createElement("li")
+              li.className="showAllLeaderboardExpense"
+              const liText = document.createTextNode(`Name - ${user.username}, total_cost - ${user.total_cost}`)
+              li.appendChild(liText)
+              // console.log(li)
+              
+              ul.appendChild(li);
+
+            });
+
+            
+        })
+
+      }
+      
+      
+      document.addEventListener("DOMContentLoaded", async () => {
+        
+        const token = localStorage.getItem("token")
+        const decodedToken = parseJwt(token)
+        console.log(decodedToken)
+        
+        if(decodedToken.ispremiumuser == 1){
+          showPremiumUserMsg()
+          showAllLeaderboardUser()
+
+          
+        }
+        const response = await axios.get(
+          "http://localhost:3000/expenseAllData",
+          { headers: { Authorization: token } }
+        );
+        localStorage.setItem("totalamount", response.data.totalExpense)
+        console.log(response);
+
+        for (let i = 0; i < response.data.allData.length; i++) {
+          showExpenseOnScreen(response.data.allData[i]);
+        }
+      });
+
+      function showExpenseOnScreen(event) {
+        const ul = document.getElementById("ul");
+        const li = document.createElement("li");
+        li.className = "expenseList";
+        const liText = document.createTextNode(
+          `${event.amount} - ${event.itemDescription} - ${event.category}`
+        );
+        li.appendChild(liText);
+        ul.appendChild(li);
+
+        // adding delete button to li
+        const deleteButton = document.createElement("button");
+        deleteButton.className = "deleteButton";
+        deleteButton.textContent = "Delete Expense";
+        li.appendChild(deleteButton);
+      }
+
+      
+
+      
+      document.getElementById('rzp-button1').onclick = async function(e){
+        console.log("Razorpay got clicked")
+        const token = localStorage.getItem("token");
+        const response = await axios.get("http://localhost:3000/buyPremiumMembership", { headers: { Authorization: token }});
+        console.log(response)
+        
+        var options = {
+          "key": response.data.key_id,
+          "order_id": response.data.order.id,
+          "currency": "INR",
+          "name": "Acme Corp", //your business name
+          "handler": async function(response){
+            const data = await axios.post("http://localhost:3000/updatePremiumMembership",{
+              order_id: options.order_id,
+              payment_id: response.razorpay_payment_id
+
+            }, { headers: { Authorization: token }})
+            
+            console.log(data)
+            alert("You are a premium user now")
+            showPremiumUserMsg()
+            localStorage.setItem("token", data.data.token)
+            showAllLeaderboardUser()
+
+          }
+          
+        }
+        const rzp1 = new Razorpay(options);
+        rzp1.open();
+        e.preventDefault();
+
+        rzp1.on("payment.failed", async function(response){
+          const reponse = await axios.post("http://localhost:3000/updateErrorPremiumMembership",{
+              order_id: options.order_id,
+              payment_id: response.razorpay_payment_id
+              
+            }, { headers: { Authorization: token }})
+          console.log("Something went wrong");
+          alert("Something went wrong")
+        })
+      }
+      
+
+    </script>
+  </body>
+</html>

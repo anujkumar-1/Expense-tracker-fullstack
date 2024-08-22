@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense Tracker - Sign Up Page</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.7.2/axios.min.js"></script>
+</head>
+<style>
+    #signup-form{
+        
+        background-color: #99a3a4;
+        margin: 10px;
+        padding: 20px;
+        font-family: sans-serif;
+
+    }
+
+    input{
+        width: 15rem;
+        margin:.4rem;
+        border-radius: 4px;
+    }
+
+    #submitButton {
+        background-color: #5dade2;
+        padding: .3rem;
+        font-family: sans-serif;
+        border-radius: 4px;
+    }
+
+    #loginPage{
+        background-color: #99a3a4;
+        color: black;
+        padding: .8rem;
+        margin: .65rem;
+        border-radius: 4px;
+        font-family: sans-serif;
+        
+    }
+    #login{
+        
+        margin-top: 2rem;
+    }
+</style>
+<body>
+    <form onsubmit="signup(event)" id="signup-form">
+        <label for="username" class="details">Name :</label>
+        <input type="text" id="username" name="username" required>
+        <br>
+
+        <label for="email" class="details">Email :</label>
+        <input type="email" id="email" name="email" required>
+        <br>
+        <label for="password" class="details">Password :</label>
+        <input type="password" id="password" name="password" required>
+        <br>
+        <button type="submit" id="submitButton">Sign Up</button>
+    </form>
+    <div id="login">
+        <a href="./login.html" id="loginPage">Existing User</a>
+    </div>
+    
+    <script>
+        async function signup(event) {
+            try {
+                event.preventDefault()
+                const username = event.target.username.value
+                const email = event.target.email.value
+                const password = event.target.password.value
+
+                let obj_info = {
+                    username:  username,
+                    email: email,
+                    password: password
+                }
+                const data = await axios.post('http://localhost:3000/signup', obj_info)
+                console.log(data)
+                if(data.status===201){
+                    window.location.href= "./login.html"
+                }
+                else{
+                    throw new Error("Failed to login")
+                }
+
+            } catch (error) {
+                console.log("signup html :", error)
+            }
+            
+        }
+
+        
+    </script>
+</body>
+</html>
